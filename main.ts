@@ -1,8 +1,12 @@
-import {CLI} from "./modules/uiModule";
+import { CLI } from './modules/uiModule';
 
-function main(): void {
-    const cli = new CLI();
-    cli.mainMenu();
+async function main(): Promise<void> {
+    try {
+        const cli = new CLI();
+        await cli.mainMenu();
+    } catch (e: any) {
+        console.error('Невідома помилка:', e.message);
+    }
 }
 
 main();

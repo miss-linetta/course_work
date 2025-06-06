@@ -1,4 +1,4 @@
-import { Task, Point } from './dataModule';
+import { Task } from './dataModule';
 
 export class GreedySolver {
     static solve(task: Task): { xLine: number; yLine: number; D: number } {
@@ -29,22 +29,33 @@ export class GreedySolver {
                 }
             }
         }
+
         return { xLine: bestX, yLine: bestY, D: bestD };
     }
 }
 
+
 export class AggregateSolver {
-    static solve(task: Task, pi?: number): { theta: number; D: number } {
+    static solve(
+        task: Task,
+        pi: number,
+        deltaTheta: number
+    ): { theta: number; D: number } {
         const S = task.weights.reduce((a, b) => a + b, 0);
-        const xC = task.points.reduce((sum, p, i) => sum + p.x * task.weights[i], 0) / S;
-        const yC = task.points.reduce((sum, p, i) => sum + p.y * task.weights[i], 0) / S;
-        const thetas = task.points.map((p) => Math.atan2(p.y - yC, p.x - xC));
+        const xC =
+            task.points.reduce((sum, p, i) => sum + p.x * task.weights[i], 0) / S;
+        const yC =
+            task.points.reduce((sum, p, i) => sum + p.y * task.weights[i], 0) / S;
+
+        const K = Math.floor((2 * Math.PI) / deltaTheta);
         let bestD = Infinity;
         let bestTheta = 0;
         let stagn = 0;
 
-        for (const theta of thetas) {
+        for (let k = 0; k < K; k++) {
+            const theta = k * deltaTheta;
             const sums = [0, 0, 0, 0];
+
             for (let j = 0; j < task.n; j++) {
                 const dx = task.points[j].x - xC;
                 const dy = task.points[j].y - yC;
@@ -53,6 +64,7 @@ export class AggregateSolver {
                 const idx = Math.floor(alpha / (Math.PI / 2));
                 sums[idx] += task.weights[j];
             }
+
             const D = Math.max(...sums) - Math.min(...sums);
             if (D < bestD) {
                 bestD = D;
@@ -61,8 +73,12 @@ export class AggregateSolver {
             } else {
                 stagn++;
             }
-            if (pi !== undefined && stagn >= pi) break;
+
+            if (stagn >= pi) {
+                break;
+            }
         }
+
         return { theta: bestTheta, D: bestD };
     }
 }

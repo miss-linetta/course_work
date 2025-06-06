@@ -31,15 +31,31 @@ export class Task {
 
     static load(path: string): Task {
         const data = fs.readFileSync(path, 'utf-8').trim().split(/\r?\n/);
-        const [nStr, RStr] = data[0].split(' ');
+        if (data.length < 1) {
+            throw new Error('Файл порожній або некоректний.');
+        }
+
+        const [nStr, RStr] = data[0].trim().split(/\s+/);
         const n = parseInt(nStr, 10);
         const R = parseFloat(RStr);
+        if (isNaN(n) || isNaN(R)) throw new Error('Некоректні n або R у першому рядку.');
+        if (data.length < n + 1) {
+            throw new Error(`Очікується ${n} точок, але знайдено ${data.length - 1}.`);
+        }
+
         const points: Point[] = [];
         const weights: number[] = [];
         for (let i = 1; i <= n; i++) {
-            const [xStr, yStr, wStr] = data[i].split(' ');
-            points.push({ x: parseFloat(xStr), y: parseFloat(yStr) });
-            weights.push(parseFloat(wStr));
+            const parts = data[i].trim().split(/\s+/);
+            if (parts.length < 3) throw new Error(`Рядок ${i + 1} має формат "x y w".`);
+            const x = parseFloat(parts[0]);
+            const y = parseFloat(parts[1]);
+            const w = parseFloat(parts[2]);
+            if (isNaN(x) || isNaN(y) || isNaN(w)) {
+                throw new Error(`Некоректні значення у рядку ${i + 1}.`);
+            }
+            points.push({ x, y });
+            weights.push(w);
         }
         return new Task(n, R, points, weights);
     }
